@@ -2,6 +2,7 @@
 #include "Arduino.h"
 #include "SoftwareSerial.h"
 #include "DFRobotDFPlayerMini.h"
+#include "ColorPalette.h"
 
 #define COIN_SENSOR A3
 #define STOP_SENSOR A4
@@ -25,6 +26,8 @@ int stopSensorValue = 0;
 
 volatile int counter = 0;
 volatile int seconds = 0;
+
+bool toggleLed = false;
 
 inline const void setupDFP(){
   mySoftwareSerial.begin(9600);
@@ -86,6 +89,7 @@ ISR(TIMER2_COMPA_vect){          // timer compare interrupt service routine
 enum class State{
   IDLE,
   START_SONG,
+  WAIT,
   FORWARD,
   BACKWARD,
   STOP,
@@ -105,9 +109,16 @@ void checkState(){
 
     case State::START_SONG:
       // Serial.println("start");
-      delay(5000);
-      state = State::FORWARD;
+      // delay(5000);
+      state = State::WAIT;
       break;
+
+    case State::WAIT:
+      if (seconds == 5){
+        seconds = 0;
+        state = State::FORWARD;
+      }
+      break;  
 
     case State::FORWARD:
       // Serial.println("forward");
@@ -144,6 +155,10 @@ void checkState(){
 }
 
 void setup() {
+  ledSetup();
+  FastLED.clear();
+  FastLED.show();
+
   setupDFP();
   pinMode(COIN_SENSOR, INPUT);
   pinMode(STOP_SENSOR, INPUT);
@@ -152,7 +167,9 @@ void setup() {
 }
 
 void loop() {
-  
+  if (toggleLed)
+    ledLoop();
+
   // Output
   switch(state){
     case State::IDLE:
@@ -160,9 +177,13 @@ void loop() {
 
     case State::START_SONG:
     myDFPlayer.next();
+    toggleLed = true;
     // myDFPlayer.next();
       // myDFPlayer.playFolder(1, (currentSong++ % nSongs) + 1);
       break;
+
+    case State::WAIT:
+    break;
 
     case State::FORWARD:
       forwardServo(myServo);
@@ -180,6 +201,9 @@ void loop() {
     case State::STOP:
       stopServo(myServo);
       delay(10);
+      toggleLed = false;
+      FastLED.clear();
+      FastLED.show();
       // delay(3000);
       // myDFPlayer.stop();
       break;
