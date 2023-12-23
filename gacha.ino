@@ -1,8 +1,17 @@
 #include <Servo.h>
+#include "Arduino.h"
+#include "SoftwareSerial.h"
+#include "DFRobotDFPlayerMini.h"
 
 #define COIN_SENSOR A3
 #define STOP_SENSOR A4
 #define SERVO_PIN 9
+#define DFP_RX 10
+#define DRP_TX 11
+
+SoftwareSerial mySoftwareSerial(10, 11); // RX, TX
+DFRobotDFPlayerMini myDFPlayer;
+const int nSongs = 3;
 
 Servo myServo;
 const int forwardServoValue = 1300;
@@ -14,6 +23,29 @@ int stopSensorValue = 0;
 
 volatile int counter = 0;
 volatile int seconds = 0;
+
+inline const void setupDFP(){
+  mySoftwareSerial.begin(9600);
+  Serial.begin(115200);
+  
+  Serial.println();
+  Serial.println(F("DFRobot DFPlayer Mini Demo"));
+  Serial.println(F("Initializing DFPlayer ... (May take 3~5 seconds)"));
+  
+  if (!myDFPlayer.begin(mySoftwareSerial)) {  //Use softwareSerial to communicate with mp3.
+    Serial.println(F("Unable to begin:"));
+    Serial.println(F("1.Please recheck the connection!"));
+    Serial.println(F("2.Please insert the SD card!"));
+    while(true){
+      delay(0); // Code to compatible with ESP8266 watch dog.
+    }
+  }
+  Serial.println(F("DFPlayer Mini online."));
+  
+  myDFPlayer.volume(20);  //Set volume value. From 0 to 30
+  // myDFPlayer.play(2);  //Play the first mp3
+  // myDFPlayer.play(random(0, nSongs + 1));
+}
 
 inline const void forwardServo(const Servo& servo){
     servo.attach(SERVO_PIN);
@@ -49,6 +81,7 @@ ISR(TIMER2_COMPA_vect){          // timer compare interrupt service routine
 
 enum class State{
   IDLE,
+  START_SONG,
   FORWARD,
   BACKWARD,
   STOP
@@ -62,7 +95,16 @@ void checkState(){
       seconds = 0;
       // Serial.println("idle");
       if (coinSensorValue > threshold)
-        state = State::FORWARD;
+        state = State::START_SONG;
+      break;
+
+    case State::START_SONG:
+      seconds = 0;
+      while(seconds < 10){
+        delay(0);
+        Serial.println("Waiting");
+      }
+      // state = State::FORWARD;
       break;
 
     case State::FORWARD:
@@ -96,6 +138,7 @@ void checkState(){
 }
 
 void setup() {
+  setupDFP();
   pinMode(COIN_SENSOR, INPUT);
   pinMode(STOP_SENSOR, INPUT);
   timerSetup();
@@ -110,6 +153,9 @@ void loop() {
       stopServo(myServo);
       break;
 
+    case State::START_SONG:
+      myDFPlayer.next();
+
     case State::FORWARD:
       forwardServo(myServo);
       break;
@@ -119,6 +165,7 @@ void loop() {
       break;
 
     case State::STOP:
+      myDFPlayer.stop();
       break;
   }
 
