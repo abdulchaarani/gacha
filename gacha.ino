@@ -45,6 +45,10 @@ inline const void setupDFP(){
   Serial.println(F("DFPlayer Mini online."));
   
   myDFPlayer.volume(volume);  //Set volume value. From 0 to 30
+  // myDFPlayer.play(2);  //Play the first mp3
+  // myDFPlayer.play(random(0, nSongs + 1));
+  // myDFPlayer.next();
+  // myDFPlayer.stop();
 }
 
 inline const void forwardServo(const Servo& servo){
@@ -94,16 +98,19 @@ void checkState(){
   switch(state){
     case State::IDLE:
       seconds = 0;
+      // Serial.println("idle");
       if (coinSensorValue > threshold)
         state = State::START_SONG;
       break;
 
     case State::START_SONG:
+      // Serial.println("start");
       delay(5000);
       state = State::FORWARD;
       break;
 
     case State::FORWARD:
+      // Serial.println("forward");
       if (seconds == 6){
         seconds = 0;
         state = State::BACKWARD;
@@ -153,6 +160,8 @@ void loop() {
 
     case State::START_SONG:
     myDFPlayer.next();
+    // myDFPlayer.next();
+      // myDFPlayer.playFolder(1, (currentSong++ % nSongs) + 1);
       break;
 
     case State::FORWARD:
@@ -171,6 +180,8 @@ void loop() {
     case State::STOP:
       stopServo(myServo);
       delay(10);
+      // delay(3000);
+      // myDFPlayer.stop();
       break;
   }
 
@@ -180,3 +191,15 @@ void loop() {
 
   checkState();
 }
+
+
+  // coinSensorValue = analogRead(COIN_SENSOR);
+  // if (coinSensorValue > threshold)
+  //   forwardServo(myServo);
+
+  // stopSensorValue = analogRead(STOP_SENSOR);
+  // Serial.println(stopSensorValue);
+  // // delay(100);
+
+  // if (stopSensorValue > threshold)
+  //   stopServo(myServo);
