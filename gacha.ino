@@ -5,13 +5,15 @@
 
 #define COIN_SENSOR A3
 #define STOP_SENSOR A4
-#define SERVO_PIN 9
+#define SERVO_PIN 4
 #define DFP_RX 10
 #define DRP_TX 11
 
 SoftwareSerial mySoftwareSerial(10, 11); // RX, TX
 DFRobotDFPlayerMini myDFPlayer;
-const int nSongs = 3;
+const int nSongs = 8;
+const int volume = 20;
+int currentSong = 0;
 
 Servo myServo;
 const int forwardServoValue = 1300;
@@ -42,9 +44,7 @@ inline const void setupDFP(){
   }
   Serial.println(F("DFPlayer Mini online."));
   
-  myDFPlayer.volume(20);  //Set volume value. From 0 to 30
-  // myDFPlayer.play(2);  //Play the first mp3
-  // myDFPlayer.play(random(0, nSongs + 1));
+  myDFPlayer.volume(volume);  //Set volume value. From 0 to 30
 }
 
 inline const void forwardServo(const Servo& servo){
@@ -84,7 +84,8 @@ enum class State{
   START_SONG,
   FORWARD,
   BACKWARD,
-  STOP
+  STOP,
+  VICTORY,
 };
 
 State state = State::IDLE;
@@ -93,29 +94,23 @@ void checkState(){
   switch(state){
     case State::IDLE:
       seconds = 0;
-      // Serial.println("idle");
       if (coinSensorValue > threshold)
         state = State::START_SONG;
       break;
 
     case State::START_SONG:
-      seconds = 0;
-      while(seconds < 10){
-        delay(0);
-        Serial.println("Waiting");
-      }
-      // state = State::FORWARD;
+      delay(5000);
+      state = State::FORWARD;
       break;
 
     case State::FORWARD:
-      // Serial.println("forward");
       if (seconds == 6){
         seconds = 0;
         state = State::BACKWARD;
       }
       else if (stopSensorValue > threshold){
         seconds = 0;
-        state = State::STOP;
+        state = State::VICTORY;
       }
       break;
 
@@ -126,10 +121,14 @@ void checkState(){
       }
       else if (stopSensorValue > threshold){
         seconds = 0;
-        state = State::STOP;
+        state = State::VICTORY;
       }
       break;
-    
+
+    case State::VICTORY:
+      state = State::STOP;
+      break;
+
     case State::STOP:
     if (seconds == 1)
       state = State::IDLE;
@@ -150,11 +149,11 @@ void loop() {
   // Output
   switch(state){
     case State::IDLE:
-      stopServo(myServo);
       break;
 
     case State::START_SONG:
-      myDFPlayer.next();
+    myDFPlayer.next();
+      break;
 
     case State::FORWARD:
       forwardServo(myServo);
@@ -164,8 +163,14 @@ void loop() {
       backwardServo(myServo);
       break;
 
+    case State::VICTORY:
+      myDFPlayer.next();
+      delay(10);
+      break;
+
     case State::STOP:
-      myDFPlayer.stop();
+      stopServo(myServo);
+      delay(10);
       break;
   }
 
@@ -175,15 +180,3 @@ void loop() {
 
   checkState();
 }
-
-
-  // coinSensorValue = analogRead(COIN_SENSOR);
-  // if (coinSensorValue > threshold)
-  //   forwardServo(myServo);
-
-  // stopSensorValue = analogRead(STOP_SENSOR);
-  // Serial.println(stopSensorValue);
-  // // delay(100);
-
-  // if (stopSensorValue > threshold)
-  //   stopServo(myServo);
