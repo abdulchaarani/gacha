@@ -10,11 +10,12 @@
 #define DFP_RX 10
 #define DRP_TX 11
 
-SoftwareSerial mySoftwareSerial(10, 11); // RX, TX
+SoftwareSerial mySoftwareSerial(DFP_RX, DRP_TX); // RX, TX
 DFRobotDFPlayerMini myDFPlayer;
-const int nSongs = 8;
+const int nSongs = 10;
 const int volume = 20;
-int currentSong = 0;
+int currentSong = 1;
+int victorySong = 9999;
 
 Servo myServo;
 const int forwardServoValue = 1300;
@@ -33,19 +34,19 @@ inline const void setupDFP(){
   mySoftwareSerial.begin(9600);
   Serial.begin(115200);
   
-  Serial.println();
-  Serial.println(F("DFRobot DFPlayer Mini Demo"));
-  Serial.println(F("Initializing DFPlayer ... (May take 3~5 seconds)"));
+  // Serial.println();
+  // Serial.println(F("DFRobot DFPlayer Mini Demo"));
+  // Serial.println(F("Initializing DFPlayer ... (May take 3~5 seconds)"));
   
   if (!myDFPlayer.begin(mySoftwareSerial)) {  //Use softwareSerial to communicate with mp3.
-    Serial.println(F("Unable to begin:"));
-    Serial.println(F("1.Please recheck the connection!"));
-    Serial.println(F("2.Please insert the SD card!"));
+    // Serial.println(F("Unable to begin:"));
+    // Serial.println(F("1.Please recheck the connection!"));
+    // Serial.println(F("2.Please insert the SD card!"));
     while(true){
       delay(0); // Code to compatible with ESP8266 watch dog.
     }
   }
-  Serial.println(F("DFPlayer Mini online."));
+  // Serial.println(F("DFPlayer Mini online."));
   
   myDFPlayer.volume(volume);  //Set volume value. From 0 to 30
   // myDFPlayer.play(2);  //Play the first mp3
@@ -176,11 +177,14 @@ void loop() {
       break;
 
     case State::START_SONG:
-    myDFPlayer.next();
+    myDFPlayer.playMp3Folder(currentSong);
+    delay(50); // to increment song
+    currentSong++;
+    if (currentSong > nSongs){
+      currentSong = 1;
+    }
     toggleLed = true;
-    // myDFPlayer.next();
-      // myDFPlayer.playFolder(1, (currentSong++ % nSongs) + 1);
-      break;
+    break;
 
     case State::WAIT:
     break;
@@ -194,7 +198,7 @@ void loop() {
       break;
 
     case State::VICTORY:
-      myDFPlayer.next();
+      myDFPlayer.playMp3Folder(victorySong);
       delay(10);
       break;
 
@@ -204,8 +208,6 @@ void loop() {
       toggleLed = false;
       FastLED.clear();
       FastLED.show();
-      // delay(3000);
-      // myDFPlayer.stop();
       break;
   }
 
@@ -215,15 +217,3 @@ void loop() {
 
   checkState();
 }
-
-
-  // coinSensorValue = analogRead(COIN_SENSOR);
-  // if (coinSensorValue > threshold)
-  //   forwardServo(myServo);
-
-  // stopSensorValue = analogRead(STOP_SENSOR);
-  // Serial.println(stopSensorValue);
-  // // delay(100);
-
-  // if (stopSensorValue > threshold)
-  //   stopServo(myServo);
