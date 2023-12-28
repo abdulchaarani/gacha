@@ -18,7 +18,7 @@ int currentSong = 1;
 int victorySong = 9999;
 
 Servo myServo;
-const int forwardServoValue = 1300;
+const int forwardServoValue = 1000;
 const int backwardServoValue = 2000;
 const int stopServoValue = 90;
 const int threshold = 100;
@@ -95,9 +95,11 @@ enum class State{
   BACKWARD,
   STOP,
   VICTORY,
+  CLOSE,
 };
 
 State state = State::IDLE;
+State previousState = State::FORWARD;
 
 void checkState(){
   switch(state){
@@ -117,7 +119,7 @@ void checkState(){
     case State::WAIT:
       if (seconds == 5){
         seconds = 0;
-        state = State::FORWARD;
+        state = previousState;
       }
       break;  
 
@@ -129,6 +131,7 @@ void checkState(){
       }
       else if (stopSensorValue > threshold){
         seconds = 0;
+        previousState = State::FORWARD;
         state = State::VICTORY;
       }
       break;
@@ -140,16 +143,22 @@ void checkState(){
       }
       else if (stopSensorValue > threshold){
         seconds = 0;
+        previousState = State::BACKWARD;
         state = State::VICTORY;
       }
       break;
 
     case State::VICTORY:
-      state = State::STOP;
+      state = State::CLOSE;
       break;
 
+    case State::CLOSE:
+    if (seconds == 3){
+       state =  State::STOP;
+    }
+    break;
+
     case State::STOP:
-    if (seconds == 1)
       state = State::IDLE;
     break;
   }
@@ -198,11 +207,17 @@ void loop() {
       break;
 
     case State::VICTORY:
+          Serial.println("VICTORY");
+
       myDFPlayer.playMp3Folder(victorySong);
       delay(10);
       break;
 
+    case State::CLOSE:
+      break;
+
     case State::STOP:
+      Serial.println("here");
       stopServo(myServo);
       delay(10);
       toggleLed = false;
