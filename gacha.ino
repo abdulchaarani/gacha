@@ -119,13 +119,13 @@ void checkState(){
     case State::WAIT:
       if (seconds == 5){
         seconds = 0;
-        state = previousState;
+        state = previousState == State::FORWARD ? State::BACKWARD : State::FORWARD;
       }
       break;  
 
     case State::FORWARD:
       // Serial.println("forward");
-      if (seconds == 6){
+      if (seconds == 3){
         seconds = 0;
         state = State::BACKWARD;
       }
@@ -153,7 +153,7 @@ void checkState(){
       break;
 
     case State::CLOSE:
-    if (seconds == 3){
+    if (seconds == 2){
        state =  State::STOP;
     }
     break;
