@@ -6,9 +6,11 @@
 
 #define COIN_SENSOR A3
 #define STOP_SENSOR A4
-#define SERVO_PIN 4
-#define DFP_RX 10
-#define DRP_TX 11
+#define SERVO_PIN 8
+// #define LED_PIN 7
+#define SLOT_PIN 6
+#define DFP_RX 11
+#define DRP_TX 10
 
 SoftwareSerial mySoftwareSerial(DFP_RX, DRP_TX); // RX, TX
 DFRobotDFPlayerMini myDFPlayer;
@@ -86,9 +88,25 @@ ISR(TIMER2_COMPA_vect){          // timer compare interrupt service routine
     seconds++;
 }
 
+void setup() {
+
+  pinMode(SLOT_PIN, INPUT_PULLUP);
+  pinMode(13, OUTPUT);
+
+  ledSetup();
+  FastLED.clear();
+  FastLED.show();
+
+  setupDFP();
+  pinMode(COIN_SENSOR, INPUT);
+  pinMode(STOP_SENSOR, INPUT);
+  timerSetup();
+  Serial.begin(9600);
+}
 
 enum class State{
   IDLE,
+  SLOT,
   START_SONG,
   WAIT,
   FORWARD,
@@ -105,18 +123,24 @@ void checkState(){
   switch(state){
     case State::IDLE:
       seconds = 0;
-      // Serial.println("idle");
       if (coinSensorValue > threshold)
+        state = State::SLOT;
+      break;
+
+    case State::SLOT:
+      if (digitalRead(SLOT_PIN) == LOW)
         state = State::START_SONG;
       break;
 
     case State::START_SONG:
-      // Serial.println("start");
+      Serial.println("start");
       // delay(5000);
+      seconds = 0;
       state = State::WAIT;
       break;
 
     case State::WAIT:
+    Serial.println("wait");
       if (seconds == 5){
         seconds = 0;
         state = previousState == State::FORWARD ? State::BACKWARD : State::FORWARD;
@@ -124,7 +148,7 @@ void checkState(){
       break;  
 
     case State::FORWARD:
-      // Serial.println("forward");
+      Serial.println("forward");
       if (seconds == 3){
         seconds = 0;
         state = State::BACKWARD;
@@ -164,18 +188,6 @@ void checkState(){
   }
 }
 
-void setup() {
-  ledSetup();
-  FastLED.clear();
-  FastLED.show();
-
-  setupDFP();
-  pinMode(COIN_SENSOR, INPUT);
-  pinMode(STOP_SENSOR, INPUT);
-  timerSetup();
-  Serial.begin(9600);
-}
-
 void loop() {
   if (toggleLed)
     ledLoop();
@@ -183,6 +195,11 @@ void loop() {
   // Output
   switch(state){
     case State::IDLE:
+      break;
+
+    case State::SLOT:
+      digitalWrite(13, HIGH);
+      turnAllLedsGreen();
       break;
 
     case State::START_SONG:
@@ -207,8 +224,7 @@ void loop() {
       break;
 
     case State::VICTORY:
-          Serial.println("VICTORY");
-
+      Serial.println("VICTORY");
       myDFPlayer.playMp3Folder(victorySong);
       delay(10);
       break;
@@ -217,7 +233,7 @@ void loop() {
       break;
 
     case State::STOP:
-      Serial.println("here");
+      Serial.println("stop");
       stopServo(myServo);
       delay(10);
       toggleLed = false;

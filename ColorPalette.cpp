@@ -162,7 +162,12 @@ void SetupPurpleAndGreenPalette()
 // };
 
 
-
+void turnAllLedsGreen(){
+  for (int i = 0; i < NUM_LEDS; ++i){
+        leds[i] = CRGB(0, 255, 0);
+      }
+  FastLED.show();
+}
 // Additional notes on FastLED compact palettes:
 //
 // Normally, in computer graphics, the palette (or "color lookup table")

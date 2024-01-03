@@ -4,7 +4,7 @@
 
 #include <FastLED.h>
 
-#define LED_PIN     3
+#define LED_PIN     7
 #define NUM_LEDS    8
 #define BRIGHTNESS  64
 #define LED_TYPE    WS2811
@@ -67,7 +67,7 @@ void SetupBlackAndWhiteStripedPalette();
 // This function sets up a palette of purple and green stripes.
 void SetupPurpleAndGreenPalette();
 
-
+void turnAllLedsGreen();
 // This example shows how to set up a static color palette
 // which is stored in PROGMEM (flash), which is almost always more
 // plentiful than RAM.  A static PROGMEM palette like this
