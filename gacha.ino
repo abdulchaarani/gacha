@@ -9,8 +9,8 @@
 #define SERVO_PIN 8
 // #define LED_PIN 7
 #define SLOT_PIN 6
-#define DFP_RX 11
-#define DRP_TX 10
+#define DFP_RX 10
+#define DRP_TX 11
 
 SoftwareSerial mySoftwareSerial(DFP_RX, DRP_TX); // RX, TX
 DFRobotDFPlayerMini myDFPlayer;
@@ -34,7 +34,7 @@ bool toggleLed = false;
 
 inline const void setupDFP(){
   mySoftwareSerial.begin(9600);
-  Serial.begin(115200);
+  // Serial.begin(115200);
   
   // Serial.println();
   // Serial.println(F("DFRobot DFPlayer Mini Demo"));
@@ -101,7 +101,7 @@ void setup() {
   pinMode(COIN_SENSOR, INPUT);
   pinMode(STOP_SENSOR, INPUT);
   timerSetup();
-  Serial.begin(9600);
+  // Serial.begin(9600);
 }
 
 enum class State{
@@ -123,7 +123,6 @@ void checkState(){
   switch(state){
     case State::IDLE:
       seconds = 0;
-          Serial.println(coinSensorValue);
       if (coinSensorValue > threshold)
         state = State::START_SONG;
       break;
@@ -148,7 +147,6 @@ void checkState(){
       break;  
 
     case State::FORWARD:
-      Serial.println("forward");
       if (seconds == 3){
         seconds = 0;
         state = State::BACKWARD;
@@ -195,17 +193,17 @@ void loop() {
   // Output
   switch(state){
     case State::IDLE:
-        Serial.println("idle");
+      // Serial.println("idle");
       break;
 
     case State::SLOT:
-        Serial.println("slot");
+        // Serial.println("slot");
       digitalWrite(13, HIGH);
       turnAllLedsGreen();
       break;
 
     case State::START_SONG:
-      Serial.println("start");
+      // Serial.println("start");
     myDFPlayer.playMp3Folder(currentSong);
     delay(50); // to increment song
     currentSong++;
@@ -216,30 +214,31 @@ void loop() {
     break;
 
     case State::WAIT:
-    Serial.println("wait");
+    // Serial.println("wait");
     break;
 
     case State::FORWARD:
-        Serial.println("forward");
+        // Serial.println("forward");
       forwardServo(myServo);
       break;
 
     case State::BACKWARD:
-        Serial.println("backward");
+        // Serial.println("backward");
       backwardServo(myServo);
       break;
 
     case State::VICTORY:
-      Serial.println("VICTORY");
+      // Serial.println("VICTORY");
       myDFPlayer.playMp3Folder(victorySong);
       delay(10);
       break;
 
     case State::CLOSE:
+          // Serial.println("close");
       break;
 
     case State::STOP:
-      Serial.println("stop");
+      // Serial.println("stop");
       stopServo(myServo);
       delay(10);
       toggleLed = false;
