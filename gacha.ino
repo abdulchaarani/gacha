@@ -123,8 +123,9 @@ void checkState(){
   switch(state){
     case State::IDLE:
       seconds = 0;
+          Serial.println(coinSensorValue);
       if (coinSensorValue > threshold)
-        state = State::SLOT;
+        state = State::START_SONG;
       break;
 
     case State::SLOT:
@@ -133,14 +134,13 @@ void checkState(){
       break;
 
     case State::START_SONG:
-      Serial.println("start");
+
       // delay(5000);
       seconds = 0;
       state = State::WAIT;
       break;
 
     case State::WAIT:
-    Serial.println("wait");
       if (seconds == 5){
         seconds = 0;
         state = previousState == State::FORWARD ? State::BACKWARD : State::FORWARD;
@@ -195,14 +195,17 @@ void loop() {
   // Output
   switch(state){
     case State::IDLE:
+        Serial.println("idle");
       break;
 
     case State::SLOT:
+        Serial.println("slot");
       digitalWrite(13, HIGH);
       turnAllLedsGreen();
       break;
 
     case State::START_SONG:
+      Serial.println("start");
     myDFPlayer.playMp3Folder(currentSong);
     delay(50); // to increment song
     currentSong++;
@@ -213,13 +216,16 @@ void loop() {
     break;
 
     case State::WAIT:
+    Serial.println("wait");
     break;
 
     case State::FORWARD:
+        Serial.println("forward");
       forwardServo(myServo);
       break;
 
     case State::BACKWARD:
+        Serial.println("backward");
       backwardServo(myServo);
       break;
 
