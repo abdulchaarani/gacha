@@ -7,15 +7,15 @@
 #define COIN_SENSOR A3
 #define STOP_SENSOR A4
 #define SERVO_PIN 8
-// #define LED_PIN 7
-#define SLOT_PIN 6
+// #define LED_PIN 6
+#define SLOT_PIN 7
 #define DFP_RX 10
 #define DRP_TX 11
 
 SoftwareSerial mySoftwareSerial(DFP_RX, DRP_TX); // RX, TX
 DFRobotDFPlayerMini myDFPlayer;
 const int nSongs = 10;
-const int volume = 20;
+const int volume = 30;
 int currentSong = 1;
 int victorySong = 9999;
 
