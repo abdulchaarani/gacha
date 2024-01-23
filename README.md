@@ -10,5 +10,5 @@ A servo motor is used to shuffle the capsules. Laser tripwires detects if a caps
 
 ## Circuit schematic
 
-![circuit schematic](assets\circuit.png)
-![pcb](assets\pcb.jpg)
+![circuit schematic](assets/circuit.png)
+![pcb](assets/pcb.jpg)
