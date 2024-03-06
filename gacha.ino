@@ -6,6 +6,7 @@
 
 #define COIN_SENSOR A3
 #define STOP_SENSOR A4
+#define BACKUP_SENSOR 13
 #define SERVO_PIN 8
 // #define LED_PIN 6
 #define SLOT_PIN 7
@@ -91,7 +92,7 @@ ISR(TIMER2_COMPA_vect){          // timer compare interrupt service routine
 void setup() {
 
   pinMode(SLOT_PIN, INPUT_PULLUP);
-  pinMode(13, OUTPUT);
+  pinMode(13, INPUT);
 
   ledSetup();
   FastLED.clear();
@@ -151,7 +152,7 @@ void checkState(){
         seconds = 0;
         state = State::BACKWARD;
       }
-      else if (stopSensorValue > threshold){
+      else if (stopSensorValue > threshold || digitalRead(BACKUP_SENSOR) == LOW){
         seconds = 0;
         previousState = State::FORWARD;
         state = State::VICTORY;
@@ -163,7 +164,7 @@ void checkState(){
         seconds = 0;
         state = State::FORWARD;
       }
-      else if (stopSensorValue > threshold){
+      else if (stopSensorValue > threshold || digitalRead(BACKUP_SENSOR) == LOW){
         seconds = 0;
         previousState = State::BACKWARD;
         state = State::VICTORY;
@@ -198,7 +199,6 @@ void loop() {
 
     case State::SLOT:
         // Serial.println("slot");
-      digitalWrite(13, HIGH);
       turnAllLedsGreen();
       break;
 
